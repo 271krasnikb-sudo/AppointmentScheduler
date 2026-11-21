@@ -21,31 +21,53 @@ public class AppointmentScheduler {
      * just the adjacent appointments. Return true only if added.
      */
     public boolean book(Appointment requested) {
-       if(requested.getStartMinutes()<OPEN_MINUTES || (requested.getStartMinutes() + requested.getDurationMinutes())> CLOSE_MINUTES ){
-        return false;
-       }
+        if (requested.getStartMinutes() < OPEN_MINUTES|| requested.getStartMinutes() + requested.getDurationMinutes() > CLOSE_MINUTES) {
+            return false;
+        }
 
-       if((schedule.floor(requested).getStartMinutes() + schedule.floor(requested).getDurationMinutes()) > requested.getStartMinutes()){
-        return false;
-       }
-       return true;
+        Appointment previous = schedule.floor(requested);
+        if (previous != null && previous.getStartMinutes() + previous.getDurationMinutes() > requested.getStartMinutes()) {
+            return false;
+        }
 
+        Appointment next = schedule.ceiling(requested);
+        if (next != null && next.getStartMinutes() < requested.getStartMinutes() + requested.getDurationMinutes()) {
+            return false;
+        }
+
+        schedule.add(requested);
+        return true;
     }
 
     /** TODO 2: Print appointments chronologically, or an empty-schedule message. */
     public void printSchedule() {
-        // TODO: Use the TreeSet's sorted iteration order.
+        if (schedule.isEmpty()) {
+            System.out.println("No appointments scheduled.");
+        } else {
+            for (Appointment appointment : schedule) {
+                System.out.println(appointment.toString());
+            }
+        }
     }
 
     /** TODO 3: Cancel the appointment that STARTS at the given minute, if any. */
     public boolean cancel(int startMinutes) {
-        // TODO: A temporary Appointment.keyAt(startMinutes) can act as a search key.
+        for (Appointment appointment : schedule) {
+            if (appointment.getStartMinutes() == startMinutes) {
+                schedule.remove(appointment);
+                return true;
+            }
+        }
         return false;
     }
 
     /** TODO 4: Return the earliest appointment beginning at or after time. */
     public Appointment nextAtOrAfter(int minutes) {
-        // TODO: TreeSet.ceiling(Appointment.keyAt(minutes)) is useful.
+        for (Appointment appointment : schedule) {
+            if (appointment.getStartMinutes() >= minutes) {
+                return appointment;
+            }
+        }
         return null;
     }
 
@@ -55,8 +77,10 @@ public class AppointmentScheduler {
      * Then print each appointment.toFileLine().
      */
     public void write(PrintWriter out) {
-        // TODO: Implement writing. Keep this exception until your code is ready.
-        throw new UnsupportedOperationException("write() not implemented");
+        out.println(FILE_HEADER);
+        for (Appointment appointment : schedule) {
+            out.println(appointment.toFileLine());
+        }
     }
 
     /** PROVIDED: loading is deliberately independent of unfinished student methods. */
